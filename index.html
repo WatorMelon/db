@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运维与数据库 刷题练习</title>
+<style>
+:root{
+  --bg:#121417; --panel:#1c1f24; --panel2:#24282f; --line:#333842;
+  --text:#e8eaed; --sub:#9aa0a8; --accent:#4c8dff; --green:#2ecc71; --red:#e74c3c;
+  --amber:#f5b942; --radius:12px; --shadow:0 4px 16px rgba(0,0,0,.3);
+}
+[data-mode="light"]{
+  --bg:#f4f6f8; --panel:#ffffff; --panel2:#eef1f5; --line:#e1e5ea;
+  --text:#1d2126; --sub:#6b7280; --shadow:0 4px 16px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"Noto Sans SC","Segoe UI",Roboto,sans-serif;line-height:1.6;padding-bottom:60px;transition:background .2s,color .2s}
+.wrap{max-width:760px;margin:0 auto;padding:14px 16px}
+
+header{display:flex;justify-content:space-between;align-items:center;padding:8px 2px}
+header h1{font-size:18px;font-weight:700}
+header .cnt{color:var(--sub);font-size:12px}
+/* 设置按钮 */
+.setting{position:relative}
+.icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--sub);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.icon-btn:hover{color:var(--text);border-color:var(--accent)}
+.menu{position:absolute;right:0;top:44px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:6px;min-width:150px;z-index:50;display:none}
+.menu.open{display:block}
+.menu .m-title{font-size:11px;color:var(--sub);padding:6px 10px 4px}
+.menu .m-item{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--text)}
+.menu .m-item:hover{background:var(--panel2)}
+.menu .m-item.on{color:var(--accent)}
+.menu .m-item .dot{font-size:12px}
+
+.stats{display:flex;gap:16px;margin:10px 2px;font-size:13px;color:var(--sub)}
+.stats b{color:var(--text);font-size:15px}
+.stats .ok b{color:var(--green)} .stats .bad b{color:var(--red)} .stats .rate b{color:var(--amber)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.tab{padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--sub);font-size:12px;cursor:pointer}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.mode{padding:6px 11px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);color:var(--sub);font-size:12px;cursor:pointer}
+.mode.active{color:var(--text);border-color:var(--accent)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-top:12px}
+.q-meta{display:flex;justify-content:space-between;color:var(--sub);font-size:12px;margin-bottom:10px}
+.q-cat{color:var(--accent)}
+.stem{font-size:16px;font-weight:600;margin-bottom:14px;white-space:pre-wrap}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);cursor:pointer;transition:.12s;text-align:left;color:var(--text);width:100%;font-size:14px}
+.opt .tag{flex:0 0 24px;height:24px;border-radius:7px;background:var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.correct{border-color:var(--green);background:rgba(46,204,113,.12)}
+.opt.correct .tag{background:var(--green);color:#fff}
+.opt.wrong{border-color:var(--red);background:rgba(231,76,60,.12)}
+.opt.wrong .tag{background:var(--red);color:#fff}
+.opt:disabled{cursor:default}
+
+.explain{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--panel2);font-size:13px;color:var(--sub);display:none;border-left:3px solid var(--line)}
+.explain.show{display:block}
+.explain.good{border-left-color:var(--green)}
+.explain.bad{border-left-color:var(--red)}
+.explain .ans{font-weight:700;color:var(--text);margin-bottom:4px}
+.explain.bad .ans{color:var(--red)}
+.explain.good .ans{color:var(--green)}
+
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+.btn{padding:10px 18px;border-radius:11px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:14px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+
+details{margin-top:16px}
+summary{cursor:pointer;color:var(--sub);font-size:13px;padding:8px 2px;user-select:none}
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin-top:10px}
+.gcell{aspect-ratio:1;border-radius:8px;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--sub);cursor:pointer}
+.gcell.cur{border-color:var(--accent);color:var(--accent)}
+.gcell.right{background:rgba(46,204,113,.18);color:var(--green);border-color:var(--green)}
+.gcell.wrong{background:rgba(231,76,60,.18);color:var(--red);border-color:var(--red)}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.reset{font-size:12px;color:var(--sub);background:none;border:1px dashed var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+.empty{text-align:center;padding:50px 20px;color:var(--sub)}
+@media(max-width:560px){
+  .grid{grid-template-columns:repeat(5,1fr)}
+  .stem{font-size:15px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>运维与数据库 · 刷题</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="cnt">共 <span id="total"></span> 题</span>
+      <div class="setting">
+        <button class="icon-btn" id="setBtn" title="设置">⚙</button>
+        <div class="menu" id="themeMenu">
+          <div class="m-title">主题</div>
+          <div class="m-item" data-theme="auto"><span>跟随系统</span><span class="dot"></span></div>
+          <div class="m-item" data-theme="dark"><span>深色</span><span class="dot"></span></div>
+          <div class="m-item" data-theme="light"><span>浅色</span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <span>已答 <b id="stAnswered">0</b></span>
+    <span class="ok">对 <b id="stRight">0</b></span>
+    <span class="bad">错 <b id="stWrong">0</b></span>
+<span class="rate">正确率 <b id="stRate">-</b></span>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="modes">
+    <button class="mode active" data-mode="order">顺序</button>
+    <button class="mode" data-mode="random">乱序</button>
+    <button class="mode" data-mode="wrong">错题重练</button>
+  </div>
+
+  <div id="quiz"></div>
+
+  <details id="gridBox">
+    <summary>题号导航</summary>
+    <div class="grid" id="grid"></div>
+  </details>
+
+  <details>
+    <summary>更多操作</summary>
+    <div class="toolbar">
+      <button class="reset" id="resetAll">清空全部进度</button>
+      <button class="reset" id="resetWrong">清出错题本</button>
+    </div>
+  </details>
+</div>
+
+<script>
+const DATA = [{"category": "Linux 初级基础", "questions": [{"num": 1, "stem": "在 Linux 中，普通用户的默认 UID 范围通常是？", "options": {"A": "0", "B": "1–999", "C": "1000 及以上", "D": "0–100"}, "answer": "C", "explain": "UID 0 为 root，1–999 为系统用户，1000 及以上是普通用户。"}, {"num": 2, "stem": "创建用户并同时创建家目录的命令是？", "options": {"A": "useradd -m user1", "B": "useradd -d user1", "C": "adduser -r user1", "D": "useradd -s user1"}, "answer": "A", "explain": "useradd -m 自动创建家目录；-d 指定家目录路径，-s 指定登录 Shell。"}, {"num": 3, "stem": "查看当前用户 UID、GID 及所属组的命令是？", "options": {"A": "whoami", "B": "id", "C": "users", "D": "finger"}, "answer": "B", "explain": "id 查看 UID/GID 及所属组；whoami 只返回当前用户名。"}, {"num": 4, "stem": "权限 rwxr-xr-- 对应的数字表示是？", "options": {"A": "754", "B": "755", "C": "644", "D": "750"}, "answer": "A", "explain": "rwx=7、r-x=5、r--=4，合起来即 754。"}, {"num": 5, "stem": "要给文件属主增加执行权限，正确的命令是？", "options": {"A": "chmod +x 文件", "B": "chmod u+x 文件", "C": "chmod 751 文件", "D": "chown u+x 文件"}, "answer": "B", "explain": "u+x 明确只给属主加执行位；chmod +x 会同时作用于属主/属组/其他人。"}, {"num": 6, "stem": "chown root:dba file 的作用是？", "options": {"A": "修改文件属主为 root", "B": "修改文件属组为 dba", "C": "同时修改属主为 root、属组为 dba", "D": "修改文件权限"}, "answer": "C", "explain": "chown 属主:属组 可同时修改文件的属主和属组。"}, {"num": 7, "stem": "将用户 user1 追加到附加组 dba，正确的是？", "options": {"A": "usermod -G dba user1", "B": "usermod -a
+G dba user1", "C": "gpasswd -a dba user1", "D": "groupmod -a user1 dba"}, "answer": "B", "explain": "-aG 为追加附加组；单独 -G 会覆盖已有的附加组。"}, {"num": 8, "stem": "特殊权限 SUID 的典型作用是？", "options": {"A": "限制文件删除", "B": "执行该程序时以文件属主身份运行", "C": "新文件继承目录属组", "D": "锁定文件"}, "answer": "B", "explain": "SUID 让程序执行时临时以文件属主身份运行（典型如 /usr/bin/passwd）。"}, {"num": 9, "stem": "递归复制整个目录应使用？", "options": {"A": "cp 源 目标", "B": "cp -r 源 目标", "C": "mv 源 目标", "D": "scp 源 目标"}, "answer": "B", "explain": "cp -r 递归复制整个目录；mv 用于移动或改名。"}, {"num": 10, "stem": "实时跟踪查看日志文件新增内容的命令是？", "options": {"A": "tail file", "B": "tail -f file", "C": "head -f file", "D": "less file"}, "answer": "B", "explain": "tail -f 实时跟踪文件新增内容；head 没有 -f 用法。"}, {"num": 11, "stem": "打包并用 gzip 压缩目录的 tar 命令是？", "options": {"A": "tar -czvf", "B": "tar -xvf", "C": "tar -cjvf", "D": "tar -tf"}, "answer": "A", "explain": "z 对应 gzip，j 对应 bzip2，J 对应 xz；-c 打包压缩，-x 解包。"}, {"num": 12, "stem": "查看监听端口及对应进程的命令是？", "options": {"A": "netstat -i", "B": "ss -lntp", "C": "ip addr", "D": "ping"}, "answer": "B", "explain": "ss -lntp 查看监听端口与对应进程（-t TCP、-n 数字显示、-p 进程）。"}, {"num": 13, "stem": "强制递归删除目录 rm -rf 属于？", "options": {"A": "安全操作", "B": "高危操作，生产环境需谨慎", "C": "仅删除空目录", "D": "无实际效果"}, "answer": "B", "explain": "rm -rf 强制递归删除，生产环境高危，误删难以恢复。"}, {"num": 14, "stem": "umask 022 时新建目录的默认权限是？", "options": {"A": "644", "B": "755", "C": "777", "D": "750"}, "answer": "B", "explain": "umask 022 时新建目录权限 755，新建文件权限 644。"}, {"num": 15, "stem": "设置文件不可变属性（连 root 也删不掉）的命令是？", "options": {"A": "chattr +i file", "B": "chmod 000 file", "C": "chattr -i file", "D": "lsattr file"}, "answer": "A", "explain": "chattr +i 设不可变属性，连 root 也无法删除；chattr -i 解除。"}, {"num": 16, "stem": "实现 SSH 免密登录，需要把本机公钥分发到目标主机的？", "options": {"A": "/etc/hosts", "B": "~/.ssh/authorized_keys", "C": "/etc/ssh/ssh_config", "D": "~/.ssh/known_hosts"}, "answer": "B", "explain": "公钥需写入目标机 ~/.ssh/authorized_keys；known_hosts 存的是已连接主机指纹。"}, {"num": 17, "stem": "系统服务的启动、停止、重启通常由哪个命令管理？", "options": {"A": "service
+旧方式 / systemctl", "B": "chkconfig 唯一", "C": "init.d 唯一", "D": "rc.local"}, "answer": "A", "explain": "CentOS 7+ 用 systemctl 管理服务，旧版 service 启动脚本是兼容方式。"}, {"num": 18, "stem": "Linux 文件系统层级中，可变数据（日志、邮件等）通常放在？", "options": {"A": "/etc", "B": "/var", "C": "/tmp", "D": "/usr"}, "answer": "B", "explain": "/var 存放可变数据（日志、邮件、缓存）；/etc 配置，/tmp 临时文件，/usr 程序。"}, {"num": 19, "stem": "创建多级目录 a/b/c 应使用？", "options": {"A": "mkdir a/b/c", "B": "mkdir -p a/b/c", "C": "touch a/b/c", "D": "ls a/b/c"}, "answer": "B", "explain": "mkdir -p 递归创建多级目录，父目录不存在时自动建立。"}, {"num": 20, "stem": "查看磁盘空间使用情况的命令是？", "options": {"A": "df -h", "B": "du -h", "C": "fdisk -l", "D": "mount"}, "answer": "A", "explain": "df -h 查看磁盘分区空间占用；du 统计目录大小，fdisk -l 列分区表。"}]}, {"category": "Oracle 19c + ASM 初级基础", "questions": [{"num": 1, "stem": "Oracle 中用户（User）与模式（Schema）的关系是？", "options": {"A": "一对多", "B": "多对一", "C": "通常一一对应", "D": "毫无关系"}, "answer": "C", "explain": "User 与 Schema 通常一一对应，Schema 是该用户所拥有对象的集合。"}, {"num": 2, "stem": "创建用户时必须为用户指定？", "options": {"A": "表空间配额", "B": "认证方式（如密码）与默认表空间", "C": "角色 DBA", "D": "监听配置"}, "answer": "B", "explain": "CREATE USER 必须指定认证方式（密码），并指定默认表空间与临时表空间。"}, {"num": 3, "stem": "授予用户连接数据库权限正确的是？", "options": {"A": "GRANT CONNECT TO u;", "B": "GRANT CREATE SESSION TO u;", "C": "ALTER USER u CONNECT;", "D": "GRANT LOGIN TO u;"}, "answer": "B", "explain": "CREATE SESSION 是连接数据库的系统权限；CONNECT 是旧的预置角色。"}, {"num": 4, "stem": "授权并允许被授权者转授，系统权限使用？", "options": {"A": "WITH GRANT OPTION", "B": "WITH ADMIN OPTION", "C": "WITH REPLACE", "D": "CASCADE"}, "answer": "B", "explain": "系统权限转授用 WITH ADMIN OPTION；对象权限转授用 WITH GRANT OPTION。"}, {"num": 5, "stem": "对象权限的转授应使用？", "options": {"A": "WITH ADMIN OPTION", "B": "WITH GRANT OPTION", "C": "WITH GRANT", "D": "ADMIN"}, "answer": "B", "explain": "对象权限（表上 SELECT/INSERT 等）转授使用 WITH GRANT OPTION。"}, {"num": 6, "stem": "Oracle 预置角色中权限最高的是？", "options": {"A": "CONNECT", "B": "RESOURCE", "C": "DBA", "D": "PUBLIC"}, "answer": "C", "explain": "DBA 是预置角色中权限最
+高的；CONNECT、RESOURCE 为基础角色。"}, {"num": 7, "stem": "查看所有用户信息的视图是？", "options": {"A": "user_users", "B": "all_users", "C": "dba_users", "D": "v$users"}, "answer": "C", "explain": "dba_users 查看所有用户；USER_/ALL_ 只覆盖当前用户可见范围。"}, {"num": 8, "stem": "查看当前实例状态的动态性能视图是？", "options": {"A": "v$session", "B": "v$instance", "C": "v$database", "D": "v$sql"}, "answer": "B", "explain": "v$instance 反映实例实时状态：实例名、主机、启动时间、状态。"}, {"num": 9, "stem": "查看数据库打开模式（READ WRITE/READ ONLY）的视图是？", "options": {"A": "v$instance", "B": "v$database", "C": "v$parameter", "D": "v$sysstat"}, "answer": "B", "explain": "v$database 记录 DBID、库名、打开模式（READ WRITE/READ ONLY）、日志模式。"}, {"num": 10, "stem": "ASM 磁盘组中用于存放数据文件的最小存储单元称为？", "options": {"A": "Extent", "B": "Block", "C": "AU（Allocation Unit，分配单元）", "D": "Sector"}, "answer": "C", "explain": "AU（Allocation Unit）是 ASM 分配空间的最小单位，默认 1MB；Block 是 Oracle 数据块。"}, {"num": 11, "stem": "ASM 冗余级别 External 意味着？", "options": {"A": "由外部存储（如 RAID）提供冗余，ASM 自身不做镜像", "B": "双副本镜像", "C": "三副本镜像", "D": "无数据存放"}, "answer": "A", "explain": "External 冗余依赖外部 RAID，ASM 自身不做镜像，空间利用率 100%。"}, {"num": 12, "stem": "Oracle Net 客户端连接别名配置在？", "options": {"A": "listener.ora", "B": "tnsnames.ora", "C": "sqlnet.ora", "D": "init.ora"}, "answer": "B", "explain": "tnsnames.ora 定义客户端 TNS 别名；listener.ora 是服务端监听配置。"}, {"num": 13, "stem": "启动监听的命令是？", "options": {"A": "lsnrctl start", "B": "listener start", "C": "tnsping start", "D": "net start"}, "answer": "A", "explain": "lsnrctl start 启动监听；tnsping 只测试别名连通性，不启动服务。"}, {"num": 14, "stem": "EZCONNECT 远程连接的写法是？", "options": {"A": "sqlplus u/p@host:port/service_name", "B": "sqlplus u/p@tnsname", "C": "sqlplus u/p", "D": "connect u/p"}, "answer": "A", "explain": "EZCONNECT 写法 sqlplus u/p@host:port/service_name，无需 tnsnames.ora。"}, {"num": 15, "stem": "PMON 进程对监听的注册方式是？", "options": {"A": "静态注册", "B": "动态注册", "C": "手动注册", "D": "无需注册"}, "answer": "B", "explain": "实例启动时 PMON 向监听动态注册服务；静态注册写在 listener.ora。"}, {"num": 16, "stem": "查看数据文件信息的视图是？", "options": {"A":
+"dba_data_files / v$datafile", "B": "dba_tablespaces", "C": "dba_segments", "D": "v$logfile"}, "answer": "A", "explain": "dba_data_files / v$datafile 查看数据文件所属表空间与容量信息。"}, {"num": 17, "stem": "查看锁等待问题首选的视图是？", "options": {"A": "v$lock", "B": "v$sql", "C": "v$session_wait（旧）/ v$session", "D": "v$process"}, "answer": "A", "explain": "v$lock 是排查锁等待、死锁的关键视图。"}, {"num": 18, "stem": "表空间配额用于限制？", "options": {"A": "用户在某表空间的最大使用空间", "B": "用户 CPU 使用", "C": "用户连接数", "D": "密码复杂度"}, "answer": "A", "explain": "表空间配额 quota 限制用户在某表空间能使用的最大空间。"}, {"num": 19, "stem": "存储所有用户密码密文的基表是？", "options": {"A": "obj$", "B": "user$", "C": "col$", "D": "tab$"}, "answer": "B", "explain": "user$ 基表存储用户密码密文与账号状态；obj$ 存对象信息。"}, {"num": 20, "stem": "RAC 环境下跨实例的全局动态性能视图前缀是？", "options": {"A": "V$", "B": "GV$", "C": "X$", "D": "DBA_"}, "answer": "B", "explain": "RAC 跨实例的全局动态性能视图前缀为 GV$（Global）。"}]}, {"category": "MySQL 8.0.42 初级基础", "questions": [{"num": 1, "stem": "MySQL 8.0 默认的身份认证插件是？", "options": {"A": "mysql_native_password", "B": "caching_sha2_password", "C": "sha256_password", "D": "auth_socket"}, "answer": "B", "explain": "MySQL 8.0 默认认证插件为 caching_sha2_password；5.7 及以前是 mysql_native_password。"}, {"num": 2, "stem": "MySQL 用户由什么共同标识？", "options": {"A": "仅用户名", "B": "用户名 + 主机", "C": "用户名 + 端口", "D": "仅主机"}, "answer": "B", "explain": "用户由 用户名@主机 共同标识，host 决定允许从何处连接。"}, {"num": 3, "stem": "允许从任意主机连接的 host 通配符是？", "options": {"A": "localhost", "B": "127.0.0.1", "C": "%", "D": "*"}, "answer": "C", "explain": "% 匹配任意主机；localhost、127.0.0.1 仅允许本机连接。"}, {"num": 4, "stem": "MySQL 8.0 中 GRANT 语句？", "options": {"A": "仍会隐式创建用户", "B": "不再隐式创建用户，需先 CREATE USER", "C": "可直接创建数据库", "D": "无变化"}, "answer": "B", "explain": "8.0 起 GRANT 不再隐式创建用户，必须先 CREATE USER。"}, {"num": 5, "stem": "授予某用户某库全部权限并允许转授正确的是？", "options": {"A": "GRANT ALL ON db.* TO u WITH GRANT OPTION;", "B": "GRANT *.* TO u;", "C": "ALTER USER u GRANT;", "D": "GRANT OPTION TO u;"}, "answer": "A", "explain": "GRANT ALL ON db.* TO u WITH GRANT OPTION 授库
+级全部权限并允许转授。"}, {"num": 6, "stem": "查看某用户权限应使用？", "options": {"A": "SHOW PRIVILEGES FOR u;", "B": "SHOW GRANTS FOR u;", "C": "SELECT * FROM mysql.grants;", "D": "DESC USER u;"}, "answer": "B", "explain": "SHOW GRANTS FOR 'u'@'host' 查看用户被授予的权限与角色。"}, {"num": 7, "stem": "回收用户全部权限正确的是？", "options": {"A": "REVOKE *.* FROM u;", "B": "REVOKE ALL PRIVILEGES, GRANT OPTION FROM u;", "C": "DROP PRIVILEGES u;", "D": "REVOKE u ALL;"}, "answer": "B", "explain": "REVOKE ALL PRIVILEGES, GRANT OPTION FROM u 回收用户全部权限。"}, {"num": 8, "stem": "存放全局级权限与账户信息的系统表是？", "options": {"A": "mysql.db", "B": "mysql.user", "C": "mysql.tables_priv", "D": "mysql.procs_priv"}, "answer": "B", "explain": "mysql.user 存放全局级权限与账户信息；mysql.db 库存库级权限。"}, {"num": 9, "stem": "存放表级权限的系统表是？", "options": {"A": "mysql.user", "B": "mysql.db", "C": "mysql.tables_priv", "D": "mysql.role_edges"}, "answer": "C", "explain": "mysql.tables_priv 存放表级（及列级）权限位图。"}, {"num": 10, "stem": "MySQL 8.0 中角色授予关系存放在？", "options": {"A": "mysql.user", "B": "mysql.role_edges", "C": "mysql.default_roles", "D": "mysql.global_grants"}, "answer": "B", "explain": "mysql.role_edges 记录角色与用户/角色之间的授予关系。"}, {"num": 11, "stem": "允许远程连接，my.cnf 中 bind-address 通常设为？", "options": {"A": "127.0.0.1", "B": "0.0.0.0", "C": "localhost", "D": "::1"}, "answer": "B", "explain": "bind-address=0.0.0.0 监听所有网卡；127.0.0.1 仅本机。"}, {"num": 12, "stem": "MySQL 默认服务端口是？", "options": {"A": "1521", "B": "5432", "C": "3306", "D": "6379"}, "answer": "C", "explain": "MySQL 默认端口 3306；1521 是 Oracle，5432 是 PostgreSQL，6379 是 Redis。"}, {"num": 13, "stem": "元数据（库、表、列信息）主要保存在？", "options": {"A": "performance_schema", "B": "information_schema", "C": "sys", "D": "mysql"}, "answer": "B", "explain": "information_schema 保存库、表、列、索引等元数据。"}, {"num": 14, "stem": "运行时性能数据采集主要在？", "options": {"A": "information_schema", "B": "performance_schema", "C": "sys", "D": "mysql"}, "answer": "B", "explain": "performance_schema 采集运行时性能数据与等待事件。"}, {"num": 15, "stem": "基于 information_schema 与 performance_sch
+ema 提供易读诊断视图的是？", "options": {"A": "sys 库", "B": "mysql 库", "C": "test 库", "D": "performance_schema"}, "answer": "A", "explain": "sys 库基于 information_schema 与 performance_schema 提供易读的诊断视图。"}, {"num": 16, "stem": "查看当前连接与执行语句的视图是？", "options": {"A": "information_schema.processlist", "B": "mysql.user", "C": "performance_schema.variables_info", "D": "sys.schema_table_statistics"}, "answer": "A", "explain": "information_schema.processlist 等同 SHOW PROCESSLIST，查看当前连接与语句。"}, {"num": 17, "stem": "查看 InnoDB 当前活跃事务的视图是？", "options": {"A": "information_schema.innodb_trx", "B": "information_schema.tables", "C": "sys.session", "D": "performance_schema.accounts"}, "answer": "A", "explain": "information_schema.innodb_trx 查看 InnoDB 当前活跃事务。"}, {"num": 18, "stem": "强制所有连接使用 SSL 的配置项是？", "options": {"A": "skip_name_resolve", "B": "require_secure_transport = ON", "C": "bind-address", "D": "max_connections"}, "answer": "B", "explain": "require_secure_transport=ON 强制所有连接使用 SSL/TLS。"}, {"num": 19, "stem": "MySQL 8.0 起已彻底移除的功能是？", "options": {"A": "InnoDB", "B": "查询缓存 query cache", "C": "角色 role", "D": "JSON 类型"}, "answer": "B", "explain": "MySQL 8.0 已彻底移除查询缓存 query cache。"}, {"num": 20, "stem": "8.0 新增、存放全局动态权限的系统表是？", "options": {"A": "mysql.global_grants", "B": "mysql.user", "C": "mysql.db", "D": "mysql.columns_priv"}, "answer": "A", "explain": "mysql.global_grants 是 8.0 新增、存放全局动态权限的系统表。"}]}, {"category": "PostgreSQL 15 初级基础", "questions": [{"num": 1, "stem": "PostgreSQL 中用户与角色的关系是？", "options": {"A": "两种独立对象", "B": "用户与角色统一为 role，CREATE USER 等同 CREATE ROLE ... WITH LOGIN", "C": "用户包含角色", "D": "无关系"}, "answer": "B", "explain": "PG 用户与角色统一为 role；CREATE USER 等价 CREATE ROLE ... WITH LOGIN。"}, {"num": 2, "stem": "创建可登录的角色（用户）正确的是？", "options": {"A": "CREATE ROLE u;", "B": "CREATE ROLE u WITH LOGIN PASSWORD 'p';", "C": "CREATE USER ROLE u;", "D": "ADD USER u;"}, "answer": "B", "explain": "CREATE ROLE name WITH LOGIN PASSWORD 'p' 创建可登录角色；不带 LOGIN 不能登录。"}, {"num": 3, "stem": "超级用户属性通过哪个子句赋予？",
+"options": {"A": "WITH SUPERUSER", "B": "WITH ADMIN", "C": "WITH GRANT", "D": "LOGIN"}, "answer": "A", "explain": "SUPERUSER 属性通过 WITH SUPERUSER 子句赋予。"}, {"num": 4, "stem": "删除拥有对象的角色前，应先？", "options": {"A": "直接 DROP ROLE", "B": "REASSIGN OWNED BY old TO new 转移所有权", "C": "REVOKE ALL", "D": "重启服务"}, "answer": "B", "explain": "删除拥有对象的角色前，先 REASSIGN OWNED 转移对象所有权。"}, {"num": 5, "stem": "授予角色成员关系、使权限继承应使用？", "options": {"A": "GRANT r TO u;", "B": "GRANT u TO r;", "C": "ALTER ROLE u INHERIT;", "D": "SET ROLE r;"}, "answer": "A", "explain": "GRANT r TO u 把角色 r 授予 u，u 继承其权限。"}, {"num": 6, "stem": "访问某模式下表的前提是还需拥有该模式的？", "options": {"A": "SELECT 权限", "B": "USAGE 权限", "C": "INSERT 权限", "D": "CREATE 权限"}, "answer": "B", "explain": "即使表上有 SELECT，也必须先拥有模式 schema 的 USAGE 权限才能访问。"}, {"num": 7, "stem": "设置该模式下未来新建表的默认查询权限应使用？", "options": {"A": "GRANT SELECT ON ALL TABLES", "B": "ALTER DEFAULT PRIVILEGES IN SCHEMA ... GRANT SELECT ON TABLES", "C": "GRANT USAGE", "D": "SET ROLE"}, "answer": "B", "explain": "ALTER DEFAULT PRIVILEGES 管未来新建对象；GRANT ON ALL TABLES 只管现有表。"}, {"num": 8, "stem": "查看当前所有会话与执行语句的视图是？", "options": {"A": "pg_stat_activity", "B": "pg_locks", "C": "pg_stat_database", "D": "pg_roles"}, "answer": "A", "explain": "pg_stat_activity 查看所有会话与正在执行的语句。"}, {"num": 9, "stem": "查看锁等待信息首选的视图是？", "options": {"A": "pg_stat_activity", "B": "pg_locks", "C": "pg_class", "D": "pg_authid"}, "answer": "B", "explain": "pg_locks 查看锁类型、持有者与等待者，排查锁等待与死锁。"}, {"num": 10, "stem": "SQL 语句级统计视图（总耗时、调用次数）是？", "options": {"A": "pg_stat_statements", "B": "pg_stat_database", "C": "pg_stat_user_tables", "D": "pg_locks"}, "answer": "A", "explain": "pg_stat_statements 做 SQL 语句级统计（需先 CREATE EXTENSION）。"}, {"num": 11, "stem": "PostgreSQL 默认服务端口是？", "options": {"A": "1521", "B": "3306", "C": "5432", "D": "6379"}, "answer": "C", "explain": "PostgreSQL 默认服务端口 5432。"}, {"num": 12, "stem": "允许远程连接，listen_addresses 通常设为？", "options": {"A": "localhost", "B": "127.0.0.1", "C": "'*'", "D": "0.0.0.0"}, "answer"
+: "C", "explain": "listen_addresses='*' 监听所有网卡；localhost 仅本机。"}, {"num": 13, "stem": "客户端认证规则配置在？", "options": {"A": "postgresql.conf", "B": "pg_hba.conf", "C": "pg_ident.conf", "D": "pg_ctl.conf"}, "answer": "B", "explain": "pg_hba.conf 决定哪个客户端、哪个用户、连哪个库、用什么方法认证。"}, {"num": 14, "stem": "PostgreSQL 10+ 默认推荐的密码认证方法是？", "options": {"A": "trust", "B": "md5", "C": "scram-sha-256", "D": "peer"}, "answer": "C", "explain": "PG 10+ 默认推荐 scram-sha-256 密码认证。"}, {"num": 15, "stem": "重载 pg_hba.conf 使其生效，无需重启，应使用？", "options": {"A": "pg_ctl restart", "B": "SELECT pg_reload_conf();", "C": "initdb", "D": "vacuumdb"}, "answer": "B", "explain": "SELECT pg_reload_conf() 重载配置（含 pg_hba.conf），无需重启服务。"}, {"num": 16, "stem": "查看所有角色属性的视图是？", "options": {"A": "pg_user", "B": "pg_roles", "C": "pg_auth_members", "D": "pg_database"}, "answer": "B", "explain": "pg_roles 查看所有角色及属性；pg_user 是其带登录过滤的视图。"}, {"num": 17, "stem": "存放角色密码密文的系统表是？", "options": {"A": "pg_class", "B": "pg_authid", "C": "pg_database", "D": "pg_type"}, "answer": "B", "explain": "pg_authid 存放角色密码密文 rolpassword 与各属性位。"}, {"num": 18, "stem": "几乎所有关系（表/索引/序列/视图）的核心目录表是？", "options": {"A": "pg_class", "B": "pg_attribute", "C": "pg_type", "D": "pg_proc"}, "answer": "A", "explain": "pg_class 是表/索引/序列/视图等几乎所有关系的核心目录表。"}, {"num": 19, "stem": "存储列定义（列名、类型、长度、默认值）的系统表是？", "options": {"A": "pg_class", "B": "pg_attribute", "C": "pg_constraint", "D": "pg_index"}, "answer": "B", "explain": "pg_attribute 存储列定义：列名、类型、长度、默认值、列顺序。"}, {"num": 20, "stem": "流复制状态与延迟查看的视图是？", "options": {"A": "pg_stat_replication", "B": "pg_stat_wal", "C": "pg_stat_bgwriter", "D": "pg_prepared_xacts"}, "answer": "A", "explain": "pg_stat_replication 查看流复制上下游、同步状态与延迟。"}]}];
+let QUESTIONS = [];
+DATA.forEach((cat, ci) => {
+  cat.questions.forEach(q => {
+    QUESTIONS.push({
+      id: ci + '-' + q.num,
+      cat: cat.category,
+      catIdx: ci,
+      num: q.num,
+      stem: q.stem,
+      options: q.options,
+      answer: q.answer,
+      explain: q.explain
+    });
+  });
+});
+
+const state = {
+  cats: [],            // 选中的分类索引；空 = 全部
+  mode: 'order',
+  order: [],
+  cur: 0,
+  answers: {},
+  wrong: {},
+  theme: 'auto'
+};
+
+const mq = window.matchMedia('(prefers-color-scheme: light)');
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem('quiz_v3') || '{}');
+    if(s.answers) state.answers = s.answers;
+    if(s.wrong) state.wrong = s.wrong;
+    if(s.theme) state.theme = s.theme;
+    if(Array.isArray(s.cats)) state.cats = s.cats;
+  }catch(e){}
+}
+function save(){
+  localStorage.setItem('quiz_v3', JSON.stringify({answers: state.answers, wrong: state.wrong, theme: state.theme, cats: state.cats}));
+}
+
+function applyTheme(){
+  let mode = state.theme;
+  if(mode === 'auto') mode = mq.matches ? 'light' : 'dark';
+document.body.dataset.mode = mode;
+  document.querySelectorAll('.m-item').forEach(it => {
+    const on = it.dataset.theme === state.theme;
+    it.classList.toggle('on', on);
+    it.querySelector('.dot').textContent = on ? '✓' : '';
+  });
+}
+
+function buildOrder(){
+  let list = QUESTIONS;
+  if(state.cats.length) list = list.filter(q => state.cats.includes(q.catIdx));
+  if(state.mode === 'wrong') list = list.filter(q => state.wrong[q.id]);
+  let ids = list.map(q => q.id);
+  if(state.mode === 'random') ids = ids.sort(() => Math.random() - 0.5);
+  state.order = ids;
+  state.cur = 0;
+}
+
+function currentQ(){
+  return QUESTIONS.find(q => q.id === state.order[state.cur]);
+}
+
+function renderTabs(){
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  const allActive = state.cats.length === 0;
+  const all = document.createElement('button');
+  all.className = 'tab' + (allActive?' active':'');
+  all.textContent = '全部(' + QUESTIONS.length + ')';
+  all.onclick = () => { state.cats = []; save(); refresh(); };
+tabs.appendChild(all);
+  DATA.forEach((cat,i) => {
+    const on = state.cats.includes(i);
+    const b = document.createElement('button');
+    b.className = 'tab' + (on?' active':'');
+    b.textContent = cat.category.split(' ')[0] + '(' + cat.questions.length + ')';
+    b.onclick = () => {
+      if(on) state.cats = state.cats.filter(x=>x!==i);
+      else state.cats.push(i);
+      save(); refresh();
+    };
+    tabs.appendChild(b);
+  });
+}
+
+function renderStats(){
+  const answered = Object.keys(state.answers).length;
+  const right = Object.values(state.answers).filter(a=>a.right).length;
+  const wrong = answered - right;
+  document.getElementById('stAnswered').textContent = answered;
+  document.getElementById('stRight').textContent = right;
+  document.getElementById('stWrong').textContent = wrong;
+  document.getElementById('stRate').textContent = answered ? Math.round(right/answered*100)+'%' : '-';
+}
+
+function renderQuestion(){
+  const box = document.getElementById('quiz');
+  const q = currentQ();
+if(!q){
+    box.innerHTML = '<div class="empty">当前选择下没有题目，换个分类刷一刷吧。</div>';
+    return;
+  }
+  const ans = state.answers[q.id];
+  const opts = ['A','B','C','D'].map(k => {
+    let cls = 'opt', disabled = '';
+    if(ans){
+      disabled = 'disabled';
+      if(k === q.answer) cls += ' correct';
+      else if(k === ans.picked) cls += ' wrong';
+    }
+    return `<button class="${cls}" data-k="${k}" ${disabled}>
+      <span class="tag">${k}</span><span>${escapeHtml(q.options[k])}</span>
+    </button>`;
+  }).join('');
+
+  let explainHtml = '';
+  if(ans){
+    const cls = ans.right ? 'good' : 'bad';
+    const head = ans.right ? '✅ 回答正确' : '❌ 回答错误，正确答案：' + q.answer;
+    explainHtml = `<div class="explain show ${cls}">
+      <div class="ans">${head}</div>
+      <div>${escapeHtml(q.explain)}</div>
+    </div>`;
+  }
+
+  box.innerHTML = `
+    <div class="card">
+      <div class="q-meta">
+        <span class="q-cat">${q.cat}</span>
+        <span>${state.cur+1}/${state.order.length} · 原题 ${q.num}</span>
+</div>
+      <div class="stem">${escapeHtml(q.stem)}</div>
+      <div class="opts">${opts}</div>
+      ${explainHtml}
+      <div class="nav">
+        <button class="btn" id="prev" ${state.cur===0?'disabled':''}>← 上一题</button>
+        <button class="btn primary" id="next" ${state.cur>=state.order.length-1?'disabled':''}>下一题 →</button>
+      </div>
+    </div>`;
+
+  box.querySelectorAll('.opt').forEach(btn => {
+    btn.onclick = () => pick(q, btn.dataset.k);
+  });
+  document.getElementById('prev').onclick = () => { state.cur--; render(); };
+  document.getElementById('next').onclick = () => { state.cur++; render(); };
+}
+
+function pick(q, k){
+  if(state.answers[q.id]) return;
+  const right = k === q.answer;
+  state.answers[q.id] = { picked: k, right };
+  if(!right) state.wrong[q.id] = true;
+  else delete state.wrong[q.id];
+  save();
+  render();
+}
+
+function renderGrid(){
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  state.order.forEach((id, i) => {
+    const q = QUESTIONS.find(x=>x.id===id);
+const ans = state.answers[id];
+    let cls = 'gcell';
+    if(i===state.cur) cls += ' cur';
+    if(ans) cls += ans.right ? ' right' : ' wrong';
+    const cell = document.createElement('div');
+    cell.className = cls;
+    cell.textContent = q.num;
+    cell.onclick = () => { state.cur = i; render(); document.getElementById('gridBox').open = true; };
+    g.appendChild(cell);
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(){
+  renderTabs();
+  renderStats();
+  renderQuestion();
+  renderGrid();
+}
+function refresh(){ buildOrder(); render(); }
+
+// 模式切换
+document.querySelectorAll('.mode').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    state.mode = b.dataset.mode;
+    refresh();
+  };
+});
+
+// 主题菜单
+const setBtn = document.getElementById('setBtn');
+const themeMenu = document.getElementById('themeMenu');
+setBtn.onclick = (e) => { e.stopPropagation(); themeMenu.classList.toggle('open'); };
+document.addEventListener('click', (e) => {
+  if(!themeMenu.contains(e.target)) themeMenu.classList.remove('open');
+});
+document.querySelectorAll('.m-item').forEach(it => {
+  it.onclick = () => {
+    state.theme = it.dataset.theme;
+    save(); applyTheme(); themeMenu.classList.remove('open');
+  };
+});
+mq.addEventListener('change', applyTheme);
+
+document.getElementById('resetAll').onclick = () => {
+  if(confirm('确定清空所有答题进度和错题本？')){
+    state.answers = {}; state.wrong = {}; save(); refresh();
+  }
+};
+document.getElementById('resetWrong').onclick = () => {
+  state.wrong = {}; save(); refresh();
+};
+
+document.getElementById('total').textContent = QUESTIONS.length;
+load();
+applyTheme();
+refresh();
+</script>
+</body>
+</html>
